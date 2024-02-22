@@ -25,23 +25,29 @@ public class Switch extends Device
     }
 
     public void handlePacket(Ethernet etherPacket, Iface inIface)
-    {
-        System.out.println("*** -> Received packet: " +
-                etherPacket.toString().replace("\n", "\n\t"));
+	{
+		System.out.println("*** -> Received packet: " +
+				etherPacket.toString().replace("\n", "\n\t"));
 
-        // Update MAC table
-        long macAddress = Ethernet.toLong(etherPacket.getSourceMACAddress());
-        if (!macTable.containsKey(macAddress)) {
-            macTable.put(macAddress, new MacEntry(inIface));
-        } else {
-            MacEntry entry = macTable.get(macAddress);
-            entry.setLastSeen(System.currentTimeMillis());
-        }
+		// Update MAC table
+		long macAddress = Ethernet.toLong(etherPacket.getSourceMACAddress());
+		if (!macTable.containsKey(macAddress)) {
+			macTable.put(macAddress, new MacEntry(inIface));
+		} else {
+			MacEntry entry = macTable.get(macAddress);
+			entry.setLastSeen(System.currentTimeMillis());
+		}
 
-        System.out.println("interfaces:" + interfaces);
+		// Flood packet out of all interfaces except the one it was received on
+		for (Iface iface : interfaces.values()) {
+			if (iface != inIface) {
+				this.sendPacket(etherPacket, iface);
+			}
+		}
 
-        System.out.println("\n\nSWITCH DONE.\n\n");
-    }
+		System.out.println("\n\nSWITCH DONE.\n\n");
+	}
+
 
     private class MacEntry {
         private Iface iface;
