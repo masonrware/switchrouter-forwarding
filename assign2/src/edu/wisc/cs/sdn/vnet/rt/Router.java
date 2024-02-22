@@ -80,7 +80,9 @@ public class Router extends Device
 	public void handlePacket(Ethernet etherPacket, Iface inIface)
 	{
 		System.out.println("*** -> Received packet: " +
-				etherPacket.toString().replace("\n", "\n\t" + "\n\nROUTER DONE.\n\n"));
+				etherPacket.toString().replace("\n", "\n\t"));
+
+		System.out.println("\n\nROUTER DONE.\n\n");
 		
 		/********************************************************************/
 		/* TODO: Handle packets                                             */
