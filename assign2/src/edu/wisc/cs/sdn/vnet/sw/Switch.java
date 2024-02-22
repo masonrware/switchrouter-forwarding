@@ -45,7 +45,8 @@ public class Switch extends Device
 			}
 		}
 
-		System.out.println("\n\nSWITCH DONE.\n\n");
+		System.out.println("*** -> Sent packet: " +
+			etherPacket.toString().replace("\n", "\n\t"));
 	}
 
 
