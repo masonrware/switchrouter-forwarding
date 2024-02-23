@@ -29,24 +29,55 @@ public class Switch extends Device
 		System.out.println("*** -> Received packet: " +
 				etherPacket.toString().replace("\n", "\n\t"));
 
+		// Step 1: Record incoming link and MAC address of sending host
+		long srcMacAddress = Ethernet.toLong(etherPacket.getSourceMACAddress());
+
 		// Update MAC table
-		long macAddress = Ethernet.toLong(etherPacket.getSourceMACAddress());
-		if (!macTable.containsKey(macAddress)) {
-			macTable.put(macAddress, new MacEntry(inIface));
+		if (!macTable.containsKey(srcMacAddress)) {
+			macTable.put(srcMacAddress, new MacEntry(inIface));
 		} else {
-			MacEntry entry = macTable.get(macAddress);
+			MacEntry entry = macTable.get(srcMacAddress);
 			entry.setLastSeen(System.currentTimeMillis());
 		}
 
-		// Flood packet out of all interfaces except the one it was received on
+		// Step 2: Index switch table using MAC destination address
+		long destMacAddress = Ethernet.toLong(etherPacket.getDestinationMACAddress());
+		Iface outIface = lookupInterface(destMacAddress);
+
+		// Step 3: Forward packet according to switch table
+		if (outIface != null) {
+			// Entry found for destination
+			if (outIface == inIface) {
+				// Destination is on the segment from which the frame arrived, drop frame
+				return;
+			} else {
+				// Forward frame on interface indicated by entry
+				this.sendPacket(etherPacket, outIface);
+				return;
+			}
+		}
+
+		// Entry not found for destination, flood the packet
 		for (Iface iface : interfaces.values()) {
 			if (iface != inIface) {
 				this.sendPacket(etherPacket, iface);
 			}
 		}
 
-		System.out.println("*** -> Sent packet: " +
-			etherPacket.toString().replace("\n", "\n\t"));
+		System.out.println("\n\nSWITCH DONE.\n\n");
+	}
+
+	/**
+	 * Look up the interface associated with a given MAC address in the MAC table.
+	 * @param macAddress the MAC address to look up
+	 * @return the interface associated with the MAC address, or null if not found
+	 */
+	private Iface lookupInterface(long macAddress) {
+		MacEntry entry = macTable.get(macAddress);
+		if (entry != null) {
+			return entry.getIface();
+		}
+		return null;
 	}
 
 
