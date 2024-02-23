@@ -29,7 +29,7 @@ public class Switch extends Device
 		System.out.println("*** -> Received packet: " +
 				etherPacket.toString().replace("\n", "\n\t"));
 
-		// Step 1: Record incoming link and MAC address of sending host
+		// Record incoming link and MAC address of sending host
 		long srcMacAddress = Ethernet.toLong(etherPacket.getSourceMACAddress());
 
 		// Update MAC table
@@ -40,11 +40,11 @@ public class Switch extends Device
 			entry.setLastSeen(System.currentTimeMillis());
 		}
 
-		// Step 2: Index switch table using MAC destination address
+		// Index switch table using MAC destination address
 		long destMacAddress = Ethernet.toLong(etherPacket.getDestinationMACAddress());
 		Iface outIface = lookupInterface(destMacAddress);
 
-		// Step 3: Forward packet according to switch table
+		// Forward packet according to switch table
 		if (outIface != null) {
 			// Entry found for destination
 			if (outIface == inIface) {
@@ -53,6 +53,8 @@ public class Switch extends Device
 			} else {
 				// Forward frame on interface indicated by entry
 				this.sendPacket(etherPacket, outIface);
+				System.out.println("*** -> Sent packet: " +
+					etherPacket.toString().replace("\n", "\n\t"));
 				return;
 			}
 		}
@@ -61,10 +63,10 @@ public class Switch extends Device
 		for (Iface iface : interfaces.values()) {
 			if (iface != inIface) {
 				this.sendPacket(etherPacket, iface);
+				System.out.println("*** -> Flooded packet: " +
+					etherPacket.toString().replace("\n", "\n\t"));
 			}
 		}
-
-		System.out.println("\n\nSWITCH DONE.\n\n");
 	}
 
 	/**
