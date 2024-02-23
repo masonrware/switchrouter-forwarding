@@ -24,7 +24,7 @@ public class Switch extends Device
 		startTimeoutChecker();
     }
 
-    public void handlePacket(Ethernet etherPacket, Iface inIface)
+	public void handlePacket(Ethernet etherPacket, Iface inIface)
 	{
 		System.out.println("*** -> Received packet: " +
 				etherPacket.toString().replace("\n", "\n\t"));
@@ -45,23 +45,17 @@ public class Switch extends Device
 		Iface outIface = lookupInterface(destMacAddress);
 
 		// Forward packet according to switch table
-		if (outIface != null) {
-			// Entry found for destination
-			if (outIface == inIface) {
-				// Destination is on the segment from which the frame arrived, drop frame
-				return;
-			} else {
-				// Forward frame on interface indicated by entry
-				this.sendPacket(etherPacket, outIface);
-				System.out.println("*** -> Sent packet: " +
-					etherPacket.toString().replace("\n", "\n\t"));
-				return;
-			}
+		if (outIface != null && !outIface.equals(inIface)) {
+			// Entry found for destination and it's not on the same interface as incoming
+			this.sendPacket(etherPacket, outIface);
+			System.out.println("*** -> Sent packet: " +
+				etherPacket.toString().replace("\n", "\n\t"));
+			return;
 		}
 
-		// Entry not found for destination, flood the packet
+		// Entry not found for destination or destination on same interface, flood the packet
 		for (Iface iface : interfaces.values()) {
-			if (iface != inIface) {
+			if (!iface.equals(inIface)) {
 				this.sendPacket(etherPacket, iface);
 				System.out.println("*** -> Flooded packet: " +
 					etherPacket.toString().replace("\n", "\n\t"));
