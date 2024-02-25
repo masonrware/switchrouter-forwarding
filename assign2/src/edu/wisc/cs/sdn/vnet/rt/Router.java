@@ -88,6 +88,8 @@ public class Router extends Device
 		System.out.println("*** -> Router Received packet: " +
 				etherPacket.toString().replace("\n", "\n\t"));
 		
+		System.out.println(etherPacket.getEtherType());
+		
 		// Drop packet if not IPv4
 		if (etherPacket.getEtherType() != 0x0800) return;
 
