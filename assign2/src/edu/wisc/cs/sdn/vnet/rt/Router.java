@@ -1,10 +1,14 @@
 package edu.wisc.cs.sdn.vnet.rt;
 
+import java.nio.ByteBuffer;
+import java.util.Map;
+
 import edu.wisc.cs.sdn.vnet.Device;
 import edu.wisc.cs.sdn.vnet.DumpFile;
 import edu.wisc.cs.sdn.vnet.Iface;
 
 import net.floodlightcontroller.packet.Ethernet;
+import net.floodlightcontroller.packet.IPacket;
 import net.floodlightcontroller.packet.IPv4;
 
 /**
@@ -95,13 +99,38 @@ public class Router extends Device
 		// Get IP header from packet
 		IPv4 header = (IPv4) etherPacket.getPayload();
 		int hLen = header.getHeaderLength() * 4;
-		// get previous checksum
-		// zero out checksum
-		// compute new checksum
-		// compare, drop if not equal
+		short prevCheck = header.getChecksum();
+		header.setChecksum((short)0);
 
+		byte[] data = new byte[hLen];
+		ByteBuffer bb = ByteBuffer.wrap(data);
 
+		// Borrowed from IPv4 serialize()
+		bb.rewind();
+		int accumulation = 0;
+		for (int i = 0; i < hLen * 2; ++i) {
+			accumulation += 0xffff & bb.getShort();
+		}
+		accumulation = ((accumulation >> 16) & 0xffff)
+				+ (accumulation & 0xffff);
+		short newCheck = (short) (~accumulation & 0xffff);
 
+		// Drop packet if checksums don't match
+		if (prevCheck != newCheck) return;
+
+		// Does this work correctly? TTL is type byte
+		header.setTtl((byte)(header.getTtl() - 1));
+
+		// Drop packet if TTL expires
+		if (header.getTtl() == 0) return;
+
+		// Destination IP address
+		int destIP = header.getDestinationAddress();
+
+		for (Map.Entry<String, Iface> iface : this.interfaces.entrySet()){
+			// Drop packet if it matches a router interface IP
+			if (iface.getValue().getIpAddress() == destIP) return;
+		}
 		
 		/********************************************************************/
 	}
