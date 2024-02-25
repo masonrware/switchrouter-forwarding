@@ -91,6 +91,8 @@ public class Router extends Device
 		// Drop packet if not IPv4
 		if (etherPacket.getEtherType() != 0x0800) return;
 
+		System.out.println("===>post IP version check\n");
+
 		// Get IP header from packet
 		IPv4 ipv4Packet = (IPv4) etherPacket.getPayload();
 		int hLen = ipv4Packet.getHeaderLength() * 4;
@@ -99,6 +101,8 @@ public class Router extends Device
 
 		byte[] data = new byte[hLen];
 		ByteBuffer bb = ByteBuffer.wrap(data);
+
+		System.out.println("===>post IP packet isolation\n");
 
 		// Borrowed from IPv4 serialize()
 		bb.rewind();
@@ -113,11 +117,15 @@ public class Router extends Device
 		// Drop packet if checksums don't match
 		if (prevCheck != newCheck) return;
 
+		System.out.println("===>post checksum checking\n");
+
 		// TODO: Does this work correctly? TTL is type byte
 		ipv4Packet.setTtl((byte)(ipv4Packet.getTtl() - 1));
 
 		// Drop packet if TTL expires
 		if (ipv4Packet.getTtl() == 0) return;
+
+		System.out.println("===>post TTL checking\n");
 
 		// Destination IP address
 		int destIP = ipv4Packet.getDestinationAddress();
@@ -126,6 +134,8 @@ public class Router extends Device
 			// Drop packet if it matches a router interface IP
 			if (iface.getValue().getIpAddress() == destIP) return;
 		}
+
+		System.out.println("===>post internal ip match checking\n");
 
 		// HANDLE FORWARDING
 
@@ -137,6 +147,8 @@ public class Router extends Device
 			return;
 		}
 
+		System.out.println("===>post route entry lookup\n");
+
 		// Lookup the next-hop IP address
 		int nextHopIp = routeEntry.getGatewayAddress();
 
@@ -145,6 +157,8 @@ public class Router extends Device
 		if (nextHopMac == null) {
 			return; // Drop the packet if MAC address not found
 		}
+
+		System.out.println("===>post MAC addr. lookup\n");
 
 		// Update Ethernet header
 		etherPacket.setDestinationMACAddress(nextHopMac.toBytes());
