@@ -10,6 +10,7 @@ import edu.wisc.cs.sdn.vnet.Iface;
 import net.floodlightcontroller.packet.Ethernet;
 import net.floodlightcontroller.packet.IPacket;
 import net.floodlightcontroller.packet.IPv4;
+import net.floodlightcontroller.packet.MACAddress;
 
 /**
  * @author Aaron Gember-Jacobson and Anubhavnidhi Abhashkumar
@@ -84,23 +85,17 @@ public class Router extends Device
 	 */
 	public void handlePacket(Ethernet etherPacket, Iface inIface)
 	{
-		System.out.println("*** -> Received packet: " +
+		System.out.println("*** -> Router Received packet: " +
 				etherPacket.toString().replace("\n", "\n\t"));
-
-		System.out.println("\n\nROUTER DONE.\n\n");
-		
-		/********************************************************************/
-		/* TODO: Handle packets   
-		*/
 		
 		// Drop packet if not IPv4
 		if (etherPacket.getEtherType() != 0x0800) return;
 
 		// Get IP header from packet
-		IPv4 header = (IPv4) etherPacket.getPayload();
-		int hLen = header.getHeaderLength() * 4;
-		short prevCheck = header.getChecksum();
-		header.setChecksum((short)0);
+		IPv4 ipv4Packet = (IPv4) etherPacket.getPayload();
+		int hLen = ipv4Packet.getHeaderLength() * 4;
+		short prevCheck = ipv4Packet.getChecksum();
+		ipv4Packet.setChecksum((short)0);
 
 		byte[] data = new byte[hLen];
 		ByteBuffer bb = ByteBuffer.wrap(data);
@@ -118,20 +113,47 @@ public class Router extends Device
 		// Drop packet if checksums don't match
 		if (prevCheck != newCheck) return;
 
-		// Does this work correctly? TTL is type byte
-		header.setTtl((byte)(header.getTtl() - 1));
+		// TODO: Does this work correctly? TTL is type byte
+		ipv4Packet.setTtl((byte)(ipv4Packet.getTtl() - 1));
 
 		// Drop packet if TTL expires
-		if (header.getTtl() == 0) return;
+		if (ipv4Packet.getTtl() == 0) return;
 
 		// Destination IP address
-		int destIP = header.getDestinationAddress();
+		int destIP = ipv4Packet.getDestinationAddress();
 
 		for (Map.Entry<String, Iface> iface : this.interfaces.entrySet()){
 			// Drop packet if it matches a router interface IP
 			if (iface.getValue().getIpAddress() == destIP) return;
 		}
+
+		// HANDLE FORWARDING
+
+		// Lookup the RouteEntry
+		RouteEntry routeEntry = this.routeTable.lookup(destIP);
+            
+		// Drop the packet if no matching entry found
+		if (routeEntry == null) {
+			return;
+		}
+
+		// Lookup the next-hop IP address
+		int nextHopIp = routeEntry.getGatewayAddress();
+
+		// Lookup MAC address corresponding to next-hop IP address
+		MACAddress nextHopMac = this.arpCache.lookup(nextHopIp).getMac();
+		if (nextHopMac == null) {
+			return; // Drop the packet if MAC address not found
+		}
+
+		// Update Ethernet header
+		etherPacket.setDestinationMACAddress(nextHopMac.toBytes());
+		etherPacket.setSourceMACAddress(inIface.getMacAddress().toBytes());
+
+		// Send the packet out the correct interface
+		sendPacket(etherPacket, routeEntry.getInterface());
 		
-		/********************************************************************/
+		System.out.println("*** -> Router Sent packet: " +
+				etherPacket.toString().replace("\n", "\n\t"));
 	}
 }
