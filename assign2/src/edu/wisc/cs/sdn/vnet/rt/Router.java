@@ -104,6 +104,19 @@ public class Router extends Device
 		byte[] data = new byte[hLen];
 		ByteBuffer bb = ByteBuffer.wrap(data);
 
+		bb.put((byte) (((ipv4Packet.getVersion() & 0xf) << 4) | (hLen & 0xf)));
+        bb.put(ipv4Packet.getDiffServ());
+        bb.putShort(ipv4Packet.getTotalLength());
+        bb.putShort(ipv4Packet.getIdentification());
+        bb.putShort((short) (((ipv4Packet.getFlags() & 0x7) << 13) | (ipv4Packet.getFragmentOffset() & 0x1fff)));
+        bb.put(ipv4Packet.getTtl());
+        bb.put(ipv4Packet.getProtocol());
+        bb.putShort(ipv4Packet.getChecksum());
+        bb.putInt(ipv4Packet.getSourceAddress());
+        bb.putInt(ipv4Packet.getDestinationAddress());
+        if (ipv4Packet.getOptions() != null)
+            bb.put(ipv4Packet.getOptions());
+			
 		System.out.println("===>post IP packet isolation\n");
 
 		// Borrowed from IPv4 serialize()
