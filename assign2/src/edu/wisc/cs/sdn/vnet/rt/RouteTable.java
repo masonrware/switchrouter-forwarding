@@ -39,9 +39,20 @@ public class RouteTable
 		{
 			/*****************************************************************/
 			/* TODO: Find the route entry with the longest prefix match	  */
-			
-			return null;
-			
+			int maskSize = 0;
+			RouteEntry match = null;
+
+			for (RouteEntry entry : this.entries){
+				if (entry.getMaskAddress() > maskSize){
+					if ((ip & entry.getMaskAddress()) == entry.getDestinationAddress()){
+						maskSize = entry.getMaskAddress();
+						match = entry;
+					}
+				}
+			}
+
+			return match;
+			// test comment
 			/*****************************************************************/
 		}
 	}
