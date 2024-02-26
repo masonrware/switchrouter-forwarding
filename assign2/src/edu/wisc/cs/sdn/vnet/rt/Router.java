@@ -104,6 +104,7 @@ public class Router extends Device
 		// }
 		short prevCheck = ipv4Packet.getChecksum();
 		ipv4Packet.setChecksum((short)0);
+		System.out.println("ZERO CS: " + ipv4Packet.getChecksum());
 
 		// Recompute checksum
 		ipv4Packet.serialize();
