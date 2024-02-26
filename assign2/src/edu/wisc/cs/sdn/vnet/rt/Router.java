@@ -236,7 +236,6 @@ public class Router extends Device
 		System.out.println("==>post ARP cache lookup\n");
 	
 		// Update Ethernet header
-		ipv4Packet.setSourceAddress(routeEntry.getInterface().getIpAddress());
 		etherPacket.setDestinationMACAddress(nextHopMac.toBytes());
 		etherPacket.setSourceMACAddress(routeEntry.getInterface().getMacAddress().toBytes());
 	
