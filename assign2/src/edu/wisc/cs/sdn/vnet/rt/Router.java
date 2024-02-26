@@ -90,17 +90,16 @@ public class Router extends Device
 
 		// Check if the Ethernet frame contains an IPv4 packet
 		if (etherPacket.getEtherType() != Ethernet.TYPE_IPv4) {
-			System.out.println("Not IPv4");
+			System.out.println("NOT IPV4");
 			return; // Drop the packet if it's not IPv4
 		}
 	
 		// Extract the IPv4 packet
 		IPv4 ipv4Packet = (IPv4) etherPacket.getPayload();
-		System.out.println("IP PROTOCOL: " + ipv4Packet.getProtocol());
 		
 		// Verify the checksum of the IPv4 packet
 		if (!verifyChecksum(ipv4Packet)) {
-			System.out.println("Checksum failed");
+			System.out.println("CHECKSUM FAILED");
 			return; // Drop the packet if the checksum is incorrect
 		}
 
@@ -109,7 +108,7 @@ public class Router extends Device
 	
 		// Drop the packet if the TTL is 0
 		if (ipv4Packet.getTtl() == 0) {
-			System.out.println("TTL expired");
+			System.out.println("TTL EXPIRED");
 			return;
 		}
 
@@ -117,21 +116,17 @@ public class Router extends Device
 		for (Map.Entry<String, Iface> iface : this.interfaces.entrySet()){
 			// Drop packet if it matches a router interface IP
 			if (iface.getValue().getIpAddress() == ipv4Packet.getDestinationAddress()) {
-				System.out.println("Match on router interface");
+				System.out.println("MATCH ON ROUTER INTERFACE");
 				return;
 			}
 		}
 		
-		// if (isDestinationLocal(ipv4Packet.getDestinationAddress())) {
-		// 	return; // Drop the packet if it's destined for one of the router's interfaces
-		// }
-	
 		// Lookup the RouteEntry
 		RouteEntry routeEntry = this.routeTable.lookup(ipv4Packet.getDestinationAddress());
 	
 		// Drop the packet if no matching entry found
 		if (routeEntry == null) {
-			System.out.println("No matching entry");
+			System.out.println("NO MATCHING RT ENTRY");
 			return;
 		}
 	
@@ -144,7 +139,7 @@ public class Router extends Device
 		// Lookup MAC address corresponding to next-hop IP address
 		MACAddress nextHopMac = this.arpCache.lookup(nextHopIp).getMac();
 		if (nextHopMac == null) {
-			System.out.println("ARP lookup fail");
+			System.out.println("ARP LOOKUP FAIL");
 			return; // Drop the packet if MAC address not found
 		}
 	
