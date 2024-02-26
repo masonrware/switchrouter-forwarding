@@ -83,96 +83,6 @@ public class Router extends Device
 	 * @param etherPacket the Ethernet packet that was received
 	 * @param inIface the interface on which the packet was received
 	 */
-	// public void handlePacket(Ethernet etherPacket, Iface inIface)
-	// {
-	// 	System.out.println("*** -> Router Received packet: " +
-	// 			etherPacket.toString().replace("\n", "\n\t"));
-		
-	// 	System.out.println(etherPacket.getEtherType());
-
-	// 	// Drop packet if not IPv4
-	// 	if (etherPacket.getEtherType() != 0x0800) return;
-
-	// 	System.out.println("===>post IP version check\n");
-
-	// 	// Get IP header from packet
-	// 	IPv4 ipv4Packet = (IPv4) etherPacket.getPayload();
-	// 	int hLen = ipv4Packet.getHeaderLength() * 4;
-	// 	short prevCheck = ipv4Packet.getChecksum();
-	// 	ipv4Packet.setChecksum((short)0);
-
-	// 	byte[] data = new byte[ipv4Packet.getTotalLength()];
-	// 	ByteBuffer bb = ByteBuffer.wrap(data);
-
-	// 	System.out.println("===>post IP packet isolation\n");
-
-	// 	// Borrowed from IPv4 serialize()
-	// 	bb.rewind();
-	// 	int accumulation = 0;
-	// 	for (int i = 0; i < hLen * 2; ++i) {
-	// 		accumulation += 0xffff & bb.getShort();
-	// 	}
-	// 	accumulation = ((accumulation >> 16) & 0xffff)
-	// 			+ (accumulation & 0xffff);
-	// 	short newCheck = (short) (~accumulation & 0xffff);
-
-	// 	System.out.println(prevCheck + " vs " + newCheck);
-	// 	// Drop packet if checksums don't match
-	// 	if (prevCheck != newCheck) return;
-
-	// 	System.out.println("===>post checksum checking\n");
-
-	// 	// TODO: Does this work correctly? TTL is type byte
-	// 	ipv4Packet.setTtl((byte)(ipv4Packet.getTtl() - 1));
-
-	// 	// Drop packet if TTL expires
-	// 	if (ipv4Packet.getTtl() == 0) return;
-
-	// 	System.out.println("===>post TTL checking\n");
-
-	// 	// Destination IP address
-	// 	int destIP = ipv4Packet.getDestinationAddress();
-
-	// 	for (Map.Entry<String, Iface> iface : this.interfaces.entrySet()){
-	// 		// Drop packet if it matches a router interface IP
-	// 		if (iface.getValue().getIpAddress() == destIP) return;
-	// 	}
-
-	// 	System.out.println("===>post internal ip match checking\n");
-
-	// 	// HANDLE FORWARDING
-
-	// 	// Lookup the RouteEntry
-	// 	RouteEntry routeEntry = this.routeTable.lookup(destIP);
-            
-	// 	// Drop the packet if no matching entry found
-	// 	if (routeEntry == null) {
-	// 		return;
-	// 	}
-
-	// 	System.out.println("===>post route entry lookup\n");
-
-	// 	// Lookup the next-hop IP address
-	// 	int nextHopIp = routeEntry.getGatewayAddress();
-
-	// 	// Lookup MAC address corresponding to next-hop IP address
-	// 	MACAddress nextHopMac = this.arpCache.lookup(nextHopIp).getMac();
-	// 	if (nextHopMac == null) {
-	// 		return; // Drop the packet if MAC address not found
-	// 	}
-
-	// 	System.out.println("===>post MAC addr. lookup\n");
-
-	// 	// Update Ethernet header
-	// 	etherPacket.setDestinationMACAddress(nextHopMac.toBytes());
-	// 	etherPacket.setSourceMACAddress(routeEntry.getInterface().getMacAddress().toBytes());
-
-	// 	// Send the packet out the correct interface
-	// 	sendPacket(etherPacket, routeEntry.getInterface());
-		
-	// 	System.out.println("*** -> Router Sent packet: " +
-	// 			etherPacket.toString().replace("\n", "\n\t"));
-	// }
 
 	public void handlePacket(Ethernet etherPacket, Iface inIface) {
 		System.out.println("*** -> Router Received packet: " +
@@ -186,6 +96,7 @@ public class Router extends Device
 	
 		// Extract the IPv4 packet
 		IPv4 ipv4Packet = (IPv4) etherPacket.getPayload();
+		System.out.println("IP PROTOCOL: " + ipv4Packet.getProtocol());
 		
 		// Verify the checksum of the IPv4 packet
 		if (!verifyChecksum(ipv4Packet)) {
