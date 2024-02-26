@@ -35,27 +35,19 @@ public class RouteTable
 	 */
 	public RouteEntry lookup(int ip) {
 		synchronized (this.entries) {
-			int longestMatchLength = -1;
-			RouteEntry longestMatchEntry = null;
-	
-			for (RouteEntry entry : this.entries) {
-				int entryIP = entry.getDestinationAddress();
-				int entryMask = entry.getMaskAddress();
-				int entryNetworkAddress = entryIP & entryMask;
-				int givenNetworkAddress = ip & entryMask;
-	
-				// Check if the entry's network address matches the given IP
-				if (entryNetworkAddress == givenNetworkAddress) {
-					int entryPrefixLength = getPrefixLength(entryMask);
-					// If the current match has a longer prefix, update the longest match
-					if (entryPrefixLength > longestMatchLength) {
-						longestMatchLength = entryPrefixLength;
-						longestMatchEntry = entry;
+			int maskSize = 0;
+			RouteEntry match = null;
+
+			for (RouteEntry entry : this.entries){
+				if (entry.getMaskAddress() > maskSize){
+					if ((ip & entry.getMaskAddress()) == entry.getDestinationAddress()){
+						maskSize = entry.getMaskAddress();
+						match = entry;
 					}
 				}
 			}
-			
-			return longestMatchEntry;
+
+			return match;
 		}
 	}
 	
