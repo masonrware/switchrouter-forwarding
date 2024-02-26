@@ -201,9 +201,14 @@ public class Router extends Device
 		System.out.println("==>post TTL\n");
 
 		// Determine whether the packet is destined for one of the router's interfaces
-		if (isDestinationLocal(ipv4Packet.getDestinationAddress())) {
-			return; // Drop the packet if it's destined for one of the router's interfaces
+		for (Map.Entry<String, Iface> iface : this.interfaces.entrySet()){
+			// Drop packet if it matches a router interface IP
+			if (iface.getValue().getIpAddress() == ipv4Packet.getDestinationAddress()) return;
 		}
+		
+		// if (isDestinationLocal(ipv4Packet.getDestinationAddress())) {
+		// 	return; // Drop the packet if it's destined for one of the router's interfaces
+		// }
 		System.out.println("==>post Local\n");
 	
 		// Lookup the RouteEntry
