@@ -249,8 +249,6 @@ public class Router extends Device
 		int headerLength = ipv4Packet.getHeaderLength();
 		byte[] headerData = ipv4Packet.serialize();
 		int checksum = ipv4Packet.getChecksum();
-
-		System.out.println("====> " + headerLength);
 	
 		// Zero out the checksum field
 		headerData[10] = 0;
@@ -263,8 +261,10 @@ public class Router extends Device
 		}
 		
 		accumulation = ((accumulation >> 16) & 0xffff) + (accumulation & 0xffff);
-		accumulation += (accumulation >> 16);
-		short computedChecksum = (short) ~accumulation;
+		if ((accumulation & 0x10000) != 0) {
+			accumulation = (accumulation & 0xffff) + 1; // Add carry bit
+		}
+		short computedChecksum = (short) (~accumulation & 0xffff);
 		
 		System.out.println("====> CS A: " + checksum + "\n      CS B: " + computedChecksum);
 		// Compare computed checksum with packet's checksum
