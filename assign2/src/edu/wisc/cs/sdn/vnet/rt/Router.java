@@ -131,6 +131,7 @@ public class Router extends Device
 	
 		// Drop the packet if no matching entry found
 		if (routeEntry == null) {
+			System.out.println("No matching entry");
 			return;
 		}
 	
