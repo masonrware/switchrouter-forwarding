@@ -226,7 +226,7 @@ public class Router extends Device
 		if (nextHopIp == 0) {
 			nextHopIp = ipv4Packet.getDestinationAddress();
 		}
-		System.out.println("==>post nextHopIP:" + nextHopIp + "\n");
+		System.out.println("==>post nextHopIP:" + IPv4.fromIPv4Address(nextHopIp) + "\n");
 	
 		// Lookup MAC address corresponding to next-hop IP address
 		MACAddress nextHopMac = this.arpCache.lookup(nextHopIp).getMac();
