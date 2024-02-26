@@ -247,10 +247,10 @@ public class Router extends Device
 	
 	private boolean verifyChecksum(IPv4 ipv4Packet) {
 		int headerLength = ipv4Packet.getHeaderLength();
-		System.out.println("====> " + headerLength + "\n");
 		byte[] headerData = ipv4Packet.serialize();
-		System.out.println("====> " + headerData + "\n");
 		int checksum = ipv4Packet.getChecksum();
+
+		System.out.println("====> " + headerLength);
 	
 		// Zero out the checksum field
 		headerData[10] = 0;
@@ -258,11 +258,8 @@ public class Router extends Device
 	
 		// Compute the checksum
 		int accumulation = 0;
-		// for (int i = 0; i < headerLength * 2; ++i) {
-		// 	accumulation += (0xff & headerData[i * 2]) << 8 | (0xff & headerData[i * 2 + 1]);
-		// }
 		for (int i = 0; i < headerLength * 2; ++i) {
-			accumulation += (0xff & headerData[i * 2]) | ((0xff & headerData[i * 2 + 1]) << 8);
+			accumulation += (0xff & headerData[i * 2]) << 8 | (0xff & headerData[i * 2 + 1]);
 		}
 		
 		accumulation = ((accumulation >> 16) & 0xffff) + (accumulation & 0xffff);
