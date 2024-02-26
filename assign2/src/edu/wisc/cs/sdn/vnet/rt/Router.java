@@ -262,7 +262,8 @@ public class Router extends Device
 		accumulation = ((accumulation >> 16) & 0xffff) + (accumulation & 0xffff);
 		// accumulation += (accumulation >> 16);
 		short computedChecksum = (short) (~accumulation & 0xffff);
-	
+		
+		System.out.println("====> CS A: " + checksum + "\n\t CS B: " + computedChecksum);
 		// Compare computed checksum with packet's checksum
 		return computedChecksum == checksum;
 	}
