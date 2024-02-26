@@ -239,7 +239,7 @@ public class Router extends Device
 		etherPacket.setSourceMACAddress(routeEntry.getInterface().getMacAddress().toBytes());
 	
 		// Send the packet out the correct interface
-		sendPacket(etherPacket, routeEntry.getInterface());
+		this.sendPacket(etherPacket, routeEntry.getInterface());
 
 		System.out.println("*** -> Router Sent packet: " +
 				etherPacket.toString().replace("\n", "\n\t"));
