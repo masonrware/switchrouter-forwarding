@@ -239,6 +239,9 @@ public class Router extends Device {
 		etherPacket.setDestinationMACAddress(nextHopMac.toBytes());
 		etherPacket.setSourceMACAddress(routeEntry.getInterface().getMacAddress().toBytes());
 
+		ipv4Packet.setChecksum((short)0);
+		ipv4Packet.serialize();
+
 		// Send the packet out the correct interface
 		this.sendPacket(etherPacket, routeEntry.getInterface());
 
@@ -258,9 +261,9 @@ public class Router extends Device {
 		// Compute the checksum
 		int accumulation = 0;
 		for (int i = 0; i < headerLength * 2; ++i) {
-			if (i == 4 && (((0xff & headerData[i * 2]) << 8 | (0xff & headerData[i * 2 + 1])) & 0x100) == 256) {
-				accumulation += 256;
-			}
+			// if (i == 4 && (((0xff & headerData[i * 2]) << 8 | (0xff & headerData[i * 2 + 1])) & 0x100) == 256) {
+			// 	accumulation += 256;
+			// }
 			accumulation += (0xff & headerData[i * 2]) << 8 | (0xff & headerData[i * 2 + 1]);
 		}
 
