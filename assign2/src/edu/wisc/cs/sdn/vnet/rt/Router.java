@@ -169,7 +169,7 @@ public class Router extends Device
 	private boolean verifyChecksum(IPv4 ipv4Packet) {
 		int headerLength = ipv4Packet.getHeaderLength();
 		byte[] headerData = ipv4Packet.serialize();
-		int checksum = ipv4Packet.getChecksum();
+		short checksum = ipv4Packet.getChecksum();
 		System.out.println("PREV: " + checksum);
 	
 		// Zero out the checksum field
