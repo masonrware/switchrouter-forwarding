@@ -110,7 +110,8 @@ public class Router extends Device
 
 		// Drop packet if checksums don't match
 		if (prevCheck != ipv4Packet.getChecksum()) {
-			System.out.println("INVALID CHECKSUM");
+			System.out.println("INVALID CHECKSUM: " + ipv4Packet.getChecksum());
+			System.out.println("PREVIOUS: " + prevCheck);
 			return;
 		}
 
