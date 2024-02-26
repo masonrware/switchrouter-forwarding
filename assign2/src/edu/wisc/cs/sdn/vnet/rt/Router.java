@@ -258,9 +258,13 @@ public class Router extends Device
 	
 		// Compute the checksum
 		int accumulation = 0;
+		// for (int i = 0; i < headerLength * 2; ++i) {
+		// 	accumulation += (0xff & headerData[i * 2]) << 8 | (0xff & headerData[i * 2 + 1]);
+		// }
 		for (int i = 0; i < headerLength * 2; ++i) {
-			accumulation += (0xffff & headerData[i * 2]) << 8 | (0xffff & headerData[i * 2 + 1]);
+			accumulation += (0xff & headerData[i * 2]) | ((0xff & headerData[i * 2 + 1]) << 8);
 		}
+		
 		accumulation = ((accumulation >> 16) & 0xffff) + (accumulation & 0xffff);
 		accumulation += (accumulation >> 16);
 		short computedChecksum = (short) ~accumulation;
