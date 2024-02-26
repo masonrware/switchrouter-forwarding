@@ -334,6 +334,52 @@ public class IPv4 extends BasePacket {
         return data;
     }
 
+    public byte[] serialize2() {
+        // byte[] payloadData = null;
+        // if (payload != null) {
+        //     payload.setParent(this);
+        //     payloadData = payload.serialize();
+        // }
+
+        // int optionsLength = 0;
+        // if (this.options != null)
+        //     optionsLength = this.options.length / 4;
+        // this.headerLength = (byte) (5 + optionsLength);
+
+        // this.totalLength = (short) (this.headerLength * 4 + ((payloadData == null) ? 0
+        //         : payloadData.length));
+
+        byte[] data = new byte[this.headerLength * 4];
+        ByteBuffer bb = ByteBuffer.wrap(data);
+
+        bb.put((byte) (((this.version & 0xf) << 4) | (this.headerLength & 0xf)));
+        bb.put(this.diffServ);
+        bb.putShort(this.totalLength);
+        bb.putShort(this.identification);
+        bb.putShort((short) (((this.flags & 0x7) << 13) | (this.fragmentOffset & 0x1fff)));
+        bb.put(this.ttl);
+        bb.put(this.protocol);
+        bb.putShort(this.checksum);
+        bb.putInt(this.sourceAddress);
+        bb.putInt(this.destinationAddress);
+        if (this.options != null)
+            bb.put(this.options);
+
+        // compute checksum if needed
+        if (this.checksum == 0) {
+            bb.rewind();
+            int accumulation = 0;
+            for (int i = 0; i < this.headerLength * 4; ++i) {
+                accumulation += 0xffff & bb.getShort();
+            }
+            accumulation = ((accumulation >> 16) & 0xffff)
+                    + (accumulation & 0xffff);
+            this.checksum = (short) (~accumulation & 0xffff);
+            bb.putShort(10, this.checksum);
+        }
+        return data;
+    }
+
     @Override
     public IPacket deserialize(byte[] data, int offset, int length) {
         ByteBuffer bb = ByteBuffer.wrap(data, offset, length);
