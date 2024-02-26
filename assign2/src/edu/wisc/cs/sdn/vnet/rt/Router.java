@@ -174,20 +174,25 @@ public class Router extends Device
 	// 			etherPacket.toString().replace("\n", "\n\t"));
 	// }
 
-	public void handlePacket(Ethernet ethPacket, Iface inIface) {
+	public void handlePacket(Ethernet etherPacket, Iface inIface) {
+		System.out.println("*** -> Router Received packet: " +
+				etherPacket.toString().replace("\n", "\n\t"));
+
 		// Check if the Ethernet frame contains an IPv4 packet
-		if (ethPacket.getEtherType() != Ethernet.TYPE_IPv4) {
+		if (etherPacket.getEtherType() != Ethernet.TYPE_IPv4) {
 			return; // Drop the packet if it's not IPv4
 		}
 	
 		// Extract the IPv4 packet
-		IPv4 ipv4Packet = (IPv4) ethPacket.getPayload();
-	
+		IPv4 ipv4Packet = (IPv4) etherPacket.getPayload();
+		
+		System.out.println("==>pre checksum\n");
 		// Verify the checksum of the IPv4 packet
 		if (!verifyChecksum(ipv4Packet)) {
 			return; // Drop the packet if the checksum is incorrect
 		}
-	
+		System.out.println("==>post checksum\n");
+
 		// Decrement the TTL of the IPv4 packet
 		ipv4Packet.setTtl((byte)(ipv4Packet.getTtl() - 1));
 	
@@ -222,11 +227,14 @@ public class Router extends Device
 		}
 	
 		// Update Ethernet header
-		ethPacket.setDestinationMACAddress(nextHopMac.toBytes());
-		ethPacket.setSourceMACAddress(routeEntry.getInterface().getMacAddress().toBytes());
+		etherPacket.setDestinationMACAddress(nextHopMac.toBytes());
+		etherPacket.setSourceMACAddress(routeEntry.getInterface().getMacAddress().toBytes());
 	
 		// Send the packet out the correct interface
-		sendPacket(ethPacket, routeEntry.getInterface());
+		sendPacket(etherPacket, routeEntry.getInterface());
+
+		System.out.println("*** -> Router Sent packet: " +
+				etherPacket.toString().replace("\n", "\n\t"));
 	}
 	
 	private boolean verifyChecksum(IPv4 ipv4Packet) {
