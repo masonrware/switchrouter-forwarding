@@ -96,13 +96,12 @@ public class Router extends Device
 	
 		// Extract the IPv4 packet
 		IPv4 ipv4Packet = (IPv4) etherPacket.getPayload();
-		// short prevCheck = ipv4Packet.getChecksum();
+		short prevCheck = ipv4Packet.getChecksum();
 		// Verify the checksum of the IPv4 packet
-		// if (!verifyChecksum(ipv4Packet)) {
-		// 	System.out.println("INVALID CHECKSUM: " + ipv4Packet.getChecksum());
-		// 	System.out.println("PREVIOUS: " + prevCheck);
-		// 	return; // Drop the packet if the checksum is incorrect
-		// }
+		if (!verifyChecksum(ipv4Packet)) {
+			System.out.println("INVALID CHECKSUM");
+			return; // Drop the packet if the checksum is incorrect
+		}
 		// short prevCheck = ipv4Packet.getChecksum();
 		// ipv4Packet.setChecksum((short)0);
 
@@ -171,6 +170,7 @@ public class Router extends Device
 		int headerLength = ipv4Packet.getHeaderLength();
 		byte[] headerData = ipv4Packet.serialize();
 		int checksum = ipv4Packet.getChecksum();
+		System.out.println("PREV: " + checksum);
 	
 		// Zero out the checksum field
 		headerData[10] = 0;
@@ -184,7 +184,7 @@ public class Router extends Device
 		accumulation = ((accumulation >> 16) & 0xffff) + (accumulation & 0xffff);
 		accumulation += (accumulation >> 16);
 		short computedChecksum = (short) ~accumulation;
-	
+		System.out.println("CURRENT: " + computedChecksum);
 		// Compare computed checksum with packet's checksum
 		return computedChecksum == checksum;
 	}
