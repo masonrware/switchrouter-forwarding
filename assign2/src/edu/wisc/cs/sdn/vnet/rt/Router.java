@@ -98,9 +98,20 @@ public class Router extends Device
 		IPv4 ipv4Packet = (IPv4) etherPacket.getPayload();
 		
 		// Verify the checksum of the IPv4 packet
-		if (!verifyChecksum(ipv4Packet)) {
-			System.out.println("CHECKSUM FAILED");
-			return; // Drop the packet if the checksum is incorrect
+		// if (!verifyChecksum(ipv4Packet)) {
+		// 	System.out.println("CHECKSUM FAILED");
+		// 	return; // Drop the packet if the checksum is incorrect
+		// }
+		short prevCheck = ipv4Packet.getChecksum();
+		ipv4Packet.setChecksum((short)0);
+
+		// Recompute checksum
+		ipv4Packet.serialize();
+
+		// Drop packet if checksums don't match
+		if (prevCheck != ipv4Packet.getChecksum()) {
+			System.out.println("INVALID CHECKSUM");
+			return;
 		}
 
 		// Decrement the TTL of the IPv4 packet
