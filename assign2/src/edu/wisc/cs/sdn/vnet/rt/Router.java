@@ -143,7 +143,8 @@ public class Router extends Device
 		}
 
 		// Lookup the next-hop IP address
-		int nextHopIp = routeEntry.getGatewayAddress();
+		// int nextHopIp = routeEntry.getGatewayAddress();
+		int nextHopIp = routeEntry.getDestinationAddress();
 
 		// Lookup MAC address corresponding to next-hop IP address
 		MACAddress nextHopMac = this.arpCache.lookup(nextHopIp).getMac();
