@@ -247,23 +247,29 @@ public class Router extends Device
 	}
 	
 	private boolean verifyChecksum(IPv4 ipv4Packet) {
-		int headerLength = ipv4Packet.getHeaderLength();
-		byte[] headerData = ipv4Packet.serialize();
-		int checksum = ipv4Packet.getChecksum();
+		// int headerLength = ipv4Packet.getHeaderLength();
+		// byte[] headerData = ipv4Packet.serialize();
+		// int checksum = ipv4Packet.getChecksum();
+		// System.out.println("PREV: " + checksum);
+	
+		short checksum = ipv4Packet.getChecksum();
 		System.out.println("PREV: " + checksum);
-	
+		ipv4Packet.setChecksum((short) 0);
+		byte[] headerData = ipv4Packet.serialize();
+		short computedChecksum = ipv4Packet.getChecksum();
 		// Zero out the checksum field
-		headerData[10] = 0;
-		headerData[11] = 0;
+		// headerData[10] = 0;
+		// headerData[11] = 0;
 	
-		// Compute the checksum
-		int accumulation = 0;
-		for (int i = 0; i < headerLength * 2; ++i) {
-			accumulation += (0xff & headerData[i * 2]) << 8 | (0xff & headerData[i * 2 + 1]);
-		}
-		accumulation = ((accumulation >> 16) & 0xffff) + (accumulation & 0xffff);
-		accumulation += (accumulation >> 16);
-		short computedChecksum = (short) ~accumulation;
+		// // Compute the checksum
+		// int accumulation = 0;
+		// for (int i = 0; i < headerLength * 2; ++i) {
+		// 	accumulation += (0xff & headerData[i * 2]) << 8 | (0xff & headerData[i * 2 + 1]);
+		// }
+		// accumulation = ((accumulation >> 16) & 0xffff) + (accumulation & 0xffff);
+		// accumulation += (accumulation >> 16);
+		// short computedChecksum = (short) ~accumulation;
+
 		System.out.println("CALCULATED: " + computedChecksum);
 	
 		// Compare computed checksum with packet's checksum
