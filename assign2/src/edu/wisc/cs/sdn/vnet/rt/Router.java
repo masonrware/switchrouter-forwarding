@@ -236,7 +236,7 @@ public class Router extends Device
 	
 		// Update Ethernet header
 		etherPacket.setDestinationMACAddress(nextHopMac.toBytes());
-		etherPacket.setSourceMACAddress(routeEntry.getInterface().getMacAddress().toBytes());
+		etherPacket.setSourceMACAddress(inIface.getMacAddress().toBytes());
 	
 		// Send the packet out the correct interface
 		sendPacket(etherPacket, routeEntry.getInterface());
