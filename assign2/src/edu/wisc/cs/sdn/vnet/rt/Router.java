@@ -263,7 +263,7 @@ public class Router extends Device
 	}
 	
 	private boolean isDestinationLocal(int destinationAddress) {
-		for (Iface iface : interfaces.values()) {
+		for (Iface iface : this.interfaces.values()) {
 			if (destinationAddress == iface.getIpAddress()) {
 				return true;
 			}
