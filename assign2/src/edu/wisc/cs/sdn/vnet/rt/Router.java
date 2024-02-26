@@ -180,6 +180,7 @@ public class Router extends Device
 
 		// Check if the Ethernet frame contains an IPv4 packet
 		if (etherPacket.getEtherType() != Ethernet.TYPE_IPv4) {
+			System.out.println("Not IPv4");
 			return; // Drop the packet if it's not IPv4
 		}
 	
@@ -188,6 +189,7 @@ public class Router extends Device
 		
 		// Verify the checksum of the IPv4 packet
 		if (!verifyChecksum(ipv4Packet)) {
+			System.out.println("Checksum failed");
 			return; // Drop the packet if the checksum is incorrect
 		}
 
@@ -196,20 +198,22 @@ public class Router extends Device
 	
 		// Drop the packet if the TTL is 0
 		if (ipv4Packet.getTtl() == 0) {
+			System.out.println("TTL expired");
 			return;
 		}
-		System.out.println("==>post TTL\n");
 
 		// Determine whether the packet is destined for one of the router's interfaces
 		for (Map.Entry<String, Iface> iface : this.interfaces.entrySet()){
 			// Drop packet if it matches a router interface IP
-			if (iface.getValue().getIpAddress() == ipv4Packet.getDestinationAddress()) return;
+			if (iface.getValue().getIpAddress() == ipv4Packet.getDestinationAddress()) {
+				System.out.println("Match on router interface");
+				return;
+			}
 		}
 		
 		// if (isDestinationLocal(ipv4Packet.getDestinationAddress())) {
 		// 	return; // Drop the packet if it's destined for one of the router's interfaces
 		// }
-		System.out.println("==>post Local\n");
 	
 		// Lookup the RouteEntry
 		RouteEntry routeEntry = this.routeTable.lookup(ipv4Packet.getDestinationAddress());
@@ -218,21 +222,19 @@ public class Router extends Device
 		if (routeEntry == null) {
 			return;
 		}
-		System.out.println("==>post route table lookup\n");
 	
 		// Lookup the next-hop IP address
 		int nextHopIp = routeEntry.getGatewayAddress();
 		if (nextHopIp == 0) {
 			nextHopIp = ipv4Packet.getDestinationAddress();
 		}
-		System.out.println("==>post nextHopIP calc\n");
 	
 		// Lookup MAC address corresponding to next-hop IP address
 		MACAddress nextHopMac = this.arpCache.lookup(nextHopIp).getMac();
 		if (nextHopMac == null) {
+			System.out.println("ARP lookup fail");
 			return; // Drop the packet if MAC address not found
 		}
-		System.out.println("==>post ARP cache lookup\n");
 	
 		// Update Ethernet header
 		etherPacket.setDestinationMACAddress(nextHopMac.toBytes());
