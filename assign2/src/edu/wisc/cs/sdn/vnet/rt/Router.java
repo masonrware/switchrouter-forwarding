@@ -245,31 +245,67 @@ public class Router extends Device
 				etherPacket.toString().replace("\n", "\n\t"));
 	}
 	
+	// private boolean verifyChecksum(IPv4 ipv4Packet) {
+	// 	int headerLength = ipv4Packet.getHeaderLength();
+	// 	byte[] headerData = ipv4Packet.serialize();
+	// 	int checksum = ipv4Packet.getChecksum();
+	
+	// 	// Zero out the checksum field
+	// 	headerData[10] = 0;
+	// 	headerData[11] = 0;
+	
+	// 	// Compute the checksum
+	// 	int accumulation = 0;
+	// 	for (int i = 0; i < headerLength * 2; ++i) {
+	// 		accumulation += (0xff & headerData[i * 2]) << 8 | (0xff & headerData[i * 2 + 1]);
+	// 	}
+		
+	// 	accumulation = ((accumulation >> 16) & 0xffff) + (accumulation & 0xffff);
+	// 	if ((accumulation & 0x10000) != 0) {
+	// 		accumulation = (accumulation & 0xffff) + 1; // Add carry bit
+	// 	}
+	// 	short computedChecksum = (short) (~accumulation & 0xffff);
+		
+	// 	System.out.println("====> CS A: " + checksum + "\n      CS B: " + computedChecksum);
+	// 	// Compare computed checksum with packet's checksum
+	// 	return computedChecksum == checksum;
+	// }
+
 	private boolean verifyChecksum(IPv4 ipv4Packet) {
 		int headerLength = ipv4Packet.getHeaderLength();
-		byte[] headerData = ipv4Packet.serialize();
 		int checksum = ipv4Packet.getChecksum();
-	
-		// Zero out the checksum field
-		headerData[10] = 0;
-		headerData[11] = 0;
 	
 		// Compute the checksum
 		int accumulation = 0;
-		for (int i = 0; i < headerLength * 2; ++i) {
-			accumulation += (0xff & headerData[i * 2]) << 8 | (0xff & headerData[i * 2 + 1]);
-		}
-		
-		accumulation = ((accumulation >> 16) & 0xffff) + (accumulation & 0xffff);
+	
+		// Compute checksum over the IPv4 header fields
+		accumulation += (ipv4Packet.getVersion() << 12) | (headerLength << 8);
+		accumulation += ipv4Packet.getDiffServ() & 0xFF;
+		accumulation += ipv4Packet.getTotalLength() & 0xFFFF;
+		accumulation += ipv4Packet.getIdentification() & 0xFFFF;
+		accumulation += ((ipv4Packet.getFlags() & 0x7) << 13) | (ipv4Packet.getFragmentOffset() & 0x1FFF);
+		accumulation += ipv4Packet.getTtl() & 0xFF;
+		accumulation += ipv4Packet.getProtocol() & 0xFF;
+		accumulation += ipv4Packet.getSourceAddress();
+		accumulation += ipv4Packet.getDestinationAddress();
+	
+		// Adjust for any carry bits
+		accumulation = ((accumulation >> 16) & 0xFFFF) + (accumulation & 0xFFFF);
+	
+		// Adjust for the carry bit if necessary
 		if ((accumulation & 0x10000) != 0) {
-			accumulation = (accumulation & 0xffff) + 1; // Add carry bit
+			accumulation = (accumulation & 0xFFFF) + 1; // Add carry bit
 		}
-		short computedChecksum = (short) (~accumulation & 0xffff);
+	
+		// Compute the one's complement of the accumulation
+		short computedChecksum = (short) (~accumulation & 0xFFFF);
 		
 		System.out.println("====> CS A: " + checksum + "\n      CS B: " + computedChecksum);
+		
 		// Compare computed checksum with packet's checksum
 		return computedChecksum == checksum;
 	}
+	
 	
 	private boolean isDestinationLocal(int destinationAddress) {
 		for (Iface iface : this.interfaces.values()) {
