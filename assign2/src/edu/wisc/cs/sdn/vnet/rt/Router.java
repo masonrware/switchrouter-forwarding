@@ -260,8 +260,8 @@ public class Router extends Device
 			accumulation += (0xff & headerData[i * 2]) << 8 | (0xff & headerData[i * 2 + 1]);
 		}
 		accumulation = ((accumulation >> 16) & 0xffff) + (accumulation & 0xffff);
-		accumulation += (accumulation >> 16);
-		short computedChecksum = (short) ~accumulation;
+		// accumulation += (accumulation >> 16);
+		short computedChecksum = (short) (~accumulation & 0xffff);
 	
 		// Compare computed checksum with packet's checksum
 		return computedChecksum == checksum;
