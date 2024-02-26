@@ -116,6 +116,7 @@ public class Router extends Device
 				+ (accumulation & 0xffff);
 		short newCheck = (short) (~accumulation & 0xffff);
 
+		System.out.println(prevCheck + " vs " + newCheck);
 		// Drop packet if checksums don't match
 		if (prevCheck != newCheck) return;
 
