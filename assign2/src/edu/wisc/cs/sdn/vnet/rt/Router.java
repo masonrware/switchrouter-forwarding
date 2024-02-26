@@ -94,24 +94,16 @@ public class Router extends Device
 		// Get IP header from packet
 		IPv4 ipv4Packet = (IPv4) etherPacket.getPayload();
 		int hLen = ipv4Packet.getHeaderLength() * 4;
+
+		// Store previous checksum, zero out the field
 		short prevCheck = ipv4Packet.getChecksum();
 		ipv4Packet.setChecksum((short)0);
 
-		byte[] data = new byte[hLen];
-		ByteBuffer bb = ByteBuffer.wrap(data);
-
-		// Borrowed from IPv4 serialize()
-		bb.rewind();
-		int accumulation = 0;
-		for (int i = 0; i < hLen * 2; ++i) {
-			accumulation += 0xffff & bb.getShort();
-		}
-		accumulation = ((accumulation >> 16) & 0xffff)
-				+ (accumulation & 0xffff);
-		short newCheck = (short) (~accumulation & 0xffff);
+		// Recompute checksum
+		ipv4Packet.serialize();
 
 		// Drop packet if checksums don't match
-		if (prevCheck != newCheck) return;
+		if (prevCheck != ipv4Packet.getChecksum()) return;
 
 		// TODO: Does this work correctly? TTL is type byte
 		ipv4Packet.setTtl((byte)(ipv4Packet.getTtl() - 1));
@@ -148,7 +140,7 @@ public class Router extends Device
 
 		// Update Ethernet header
 		etherPacket.setDestinationMACAddress(nextHopMac.toBytes());
-		etherPacket.setSourceMACAddress(inIface.getMacAddress().toBytes());
+		etherPacket.setSourceMACAddress(routeEntry.getInterface().getMacAddress().toBytes());
 
 		// Send the packet out the correct interface
 		sendPacket(etherPacket, routeEntry.getInterface());
