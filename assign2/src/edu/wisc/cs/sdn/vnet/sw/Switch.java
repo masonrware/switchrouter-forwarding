@@ -26,7 +26,7 @@ public class Switch extends Device
 
 	public void handlePacket(Ethernet etherPacket, Iface inIface)
 	{
-		System.out.println("*** -> Received packet: " +
+		System.out.println("*** -> Switch Received packet: " +
 				etherPacket.toString().replace("\n", "\n\t"));
 
 		// Record incoming link and MAC address of sending host
@@ -48,7 +48,7 @@ public class Switch extends Device
 		if (outIface != null && !outIface.equals(inIface)) {
 			// Entry found for destination and it's not on the same interface as incoming
 			this.sendPacket(etherPacket, outIface);
-			System.out.println("*** -> Sent packet: " +
+			System.out.println("*** -> Switch Sent packet: " +
 				etherPacket.toString().replace("\n", "\n\t"));
 			return;
 		}
@@ -57,7 +57,7 @@ public class Switch extends Device
 		for (Iface iface : interfaces.values()) {
 			if (!iface.equals(inIface)) {
 				this.sendPacket(etherPacket, iface);
-				System.out.println("*** -> Flooded packet: " +
+				System.out.println("*** -> Switch Flooded packet: " +
 					etherPacket.toString().replace("\n", "\n\t"));
 			}
 		}
