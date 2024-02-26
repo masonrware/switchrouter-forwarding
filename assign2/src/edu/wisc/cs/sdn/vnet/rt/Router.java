@@ -186,12 +186,10 @@ public class Router extends Device
 		// Extract the IPv4 packet
 		IPv4 ipv4Packet = (IPv4) etherPacket.getPayload();
 		
-		System.out.println("==>pre checksum\n");
 		// Verify the checksum of the IPv4 packet
 		if (!verifyChecksum(ipv4Packet)) {
 			return; // Drop the packet if the checksum is incorrect
 		}
-		System.out.println("==>post checksum\n");
 
 		// Decrement the TTL of the IPv4 packet
 		ipv4Packet.setTtl((byte)(ipv4Packet.getTtl() - 1));
@@ -200,31 +198,36 @@ public class Router extends Device
 		if (ipv4Packet.getTtl() == 0) {
 			return;
 		}
+		System.out.println("==>post TTL\n");
 
 		// Determine whether the packet is destined for one of the router's interfaces
 		if (isDestinationLocal(ipv4Packet.getDestinationAddress())) {
 			return; // Drop the packet if it's destined for one of the router's interfaces
 		}
+		System.out.println("==>post Local\n");
 	
 		// Lookup the RouteEntry
-		RouteEntry routeEntry = routeTable.lookup(ipv4Packet.getDestinationAddress());
+		RouteEntry routeEntry = this.routeTable.lookup(ipv4Packet.getDestinationAddress());
 	
 		// Drop the packet if no matching entry found
 		if (routeEntry == null) {
 			return;
 		}
+		System.out.println("==>post route table lookup\n");
 	
 		// Lookup the next-hop IP address
 		int nextHopIp = routeEntry.getGatewayAddress();
 		if (nextHopIp == 0) {
 			nextHopIp = ipv4Packet.getDestinationAddress();
 		}
+		System.out.println("==>post nextHopIP calc\n");
 	
 		// Lookup MAC address corresponding to next-hop IP address
 		MACAddress nextHopMac = this.arpCache.lookup(nextHopIp).getMac();
 		if (nextHopMac == null) {
 			return; // Drop the packet if MAC address not found
 		}
+		System.out.println("==>post ARP cache lookup\n");
 	
 		// Update Ethernet header
 		etherPacket.setDestinationMACAddress(nextHopMac.toBytes());
