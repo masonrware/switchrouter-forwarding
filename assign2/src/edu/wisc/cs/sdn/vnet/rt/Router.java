@@ -89,11 +89,14 @@ public class Router extends Device
 				etherPacket.toString().replace("\n", "\n\t"));
 		
 		// Drop packet if not IPv4
-		if (etherPacket.getEtherType() != 0x0800) return;
+		if (etherPacket.getEtherType() != 0x0800) {
+			System.out.println("Not IPv4");
+			return;
+		}
 
 		// Get IP header from packet
 		IPv4 ipv4Packet = (IPv4) etherPacket.getPayload();
-		int hLen = ipv4Packet.getHeaderLength() * 4;
+		// int hLen = ipv4Packet.getHeaderLength() * 4;
 
 		// Store previous checksum, zero out the field
 		short prevCheck = ipv4Packet.getChecksum();
@@ -103,20 +106,29 @@ public class Router extends Device
 		ipv4Packet.serialize();
 
 		// Drop packet if checksums don't match
-		if (prevCheck != ipv4Packet.getChecksum()) return;
+		if (prevCheck != ipv4Packet.getChecksum()) {
+			System.out.println("Invalid checksum");
+			return;
+		}
 
 		// TODO: Does this work correctly? TTL is type byte
 		ipv4Packet.setTtl((byte)(ipv4Packet.getTtl() - 1));
 
 		// Drop packet if TTL expires
-		if (ipv4Packet.getTtl() == 0) return;
+		if (ipv4Packet.getTtl() == 0) {
+			System.out.println("TTL expired");
+			return;
+		}
 
 		// Destination IP address
 		int destIP = ipv4Packet.getDestinationAddress();
 
 		for (Map.Entry<String, Iface> iface : this.interfaces.entrySet()){
 			// Drop packet if it matches a router interface IP
-			if (iface.getValue().getIpAddress() == destIP) return;
+			if (iface.getValue().getIpAddress() == destIP) {
+				System.out.println("Router interface match");
+				return;
+			}
 		}
 
 		// HANDLE FORWARDING
@@ -126,6 +138,7 @@ public class Router extends Device
             
 		// Drop the packet if no matching entry found
 		if (routeEntry == null) {
+			System.out.println("No matching route entry");
 			return;
 		}
 
@@ -135,6 +148,7 @@ public class Router extends Device
 		// Lookup MAC address corresponding to next-hop IP address
 		MACAddress nextHopMac = this.arpCache.lookup(nextHopIp).getMac();
 		if (nextHopMac == null) {
+			System.out.println("No MAC in ARP lookup");
 			return; // Drop the packet if MAC address not found
 		}
 
