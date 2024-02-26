@@ -188,6 +188,7 @@ public class Router extends Device
 		
 		// Verify the checksum of the IPv4 packet
 		if (!verifyChecksum(ipv4Packet)) {
+			System.out.println("CHECKSUM FAILED");
 			return; // Drop the packet if the checksum is incorrect
 		}
 
