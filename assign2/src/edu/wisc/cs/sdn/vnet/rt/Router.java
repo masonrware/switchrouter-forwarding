@@ -247,7 +247,9 @@ public class Router extends Device
 	
 	private boolean verifyChecksum(IPv4 ipv4Packet) {
 		int headerLength = ipv4Packet.getHeaderLength();
+		System.out.println("====> " + headerLength + "\n");
 		byte[] headerData = ipv4Packet.serialize();
+		System.out.println("====> " + headerData + "\n");
 		int checksum = ipv4Packet.getChecksum();
 	
 		// Zero out the checksum field
@@ -260,10 +262,10 @@ public class Router extends Device
 			accumulation += (0xff & headerData[i * 2]) << 8 | (0xff & headerData[i * 2 + 1]);
 		}
 		accumulation = ((accumulation >> 16) & 0xffff) + (accumulation & 0xffff);
-		// accumulation += (accumulation >> 16);
-		short computedChecksum = (short) (~accumulation & 0xffff);
+		accumulation += (accumulation >> 16);
+		short computedChecksum = (short) ~accumulation;
 		
-		System.out.println("====> CS A: " + checksum + "\n\t CS B: " + computedChecksum);
+		System.out.println("====> CS A: " + checksum + "\n      CS B: " + computedChecksum);
 		// Compare computed checksum with packet's checksum
 		return computedChecksum == checksum;
 	}
